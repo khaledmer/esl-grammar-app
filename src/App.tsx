@@ -11,6 +11,7 @@ import {
 } from './api';
 import { isCorrect } from './utils';
 import StudentLogin from './components/StudentLogin';
+import NavHint, { shouldShowNavHint, dismissNavHint } from './components/NavHint';
 import TeacherLogin from './components/TeacherLogin';
 import GrammarExerciseView from './components/GrammarExerciseView';
 import TeacherSolutionDashboard from './components/TeacherSolutionDashboard';
@@ -33,6 +34,7 @@ export default function App() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showAnswerKey, setShowAnswerKey] = useState(false);
   const [showSubmissions, setShowSubmissions] = useState(false);
+  const [showNavHint, setShowNavHint] = useState(shouldShowNavHint);
 
   const exercise = useMemo(
     () => exercises.find((e) => e.unitCode === unitCode)!,
@@ -93,7 +95,7 @@ export default function App() {
 
   return (
     <div className="chalkboard-texture min-h-screen bg-(--color-board)">
-      <header className="border-b border-(--color-chalk-line)">
+      <header className="relative border-b border-(--color-chalk-line)">
         <div className="mx-auto flex max-w-5xl flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <GraduationCap className="h-6 w-6 text-(--color-marker-yellow)" />
@@ -112,7 +114,11 @@ export default function App() {
               {exercises.map((ex) => (
                 <button
                   key={ex.unitCode}
-                  onClick={() => setUnitCode(ex.unitCode)}
+                  onClick={() => {
+                    setUnitCode(ex.unitCode);
+                    dismissNavHint();
+                    setShowNavHint(false);
+                  }}
                   className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
                     ex.unitCode === unitCode
                       ? 'bg-(--color-marker-yellow) text-(--color-board)'
@@ -147,6 +153,8 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {mode === 'student' && showNavHint && <NavHint onDismiss={() => setShowNavHint(false)} />}
 
       <main className="mx-auto max-w-5xl px-5 py-6">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
