@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: 'Kalam', cursive;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  --color-board: #14211d;
+  --color-board-panel: #1c2b26;
+  --color-board-panel-alt: #223530;
+  --color-chalk-line: rgba(237, 237, 227, 0.14);
+  --color-chalk: #edede3;
+  --color-chalk-dim: #9fb3a8;
+  --color-marker-yellow: #e8b84b;
+  --color-marker-green: #7fbf8b;
+  --color-marker-coral: #e8735b;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--color-board);
+  color: var(--color-chalk);
+  font-family: var(--font-body);
+}
+
+/* subtle chalkboard texture */
+.chalkboard-texture {
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(237,237,227,0.03) 0, transparent 45%),
+    radial-gradient(circle at 80% 70%, rgba(237,237,227,0.025) 0, transparent 40%);
+}
+
+::selection {
+  background: var(--color-marker-yellow);
+  color: #14211d;
+}
