@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { query } from '../db.js';
+import { isPastDeadline, SUBMISSION_DEADLINE } from '../config.js';
 
 const router = Router();
 
@@ -56,6 +57,14 @@ router.post('/submit', async (req, res) => {
   const { studentId, exerciseId, unitCode, score } = req.body ?? {};
   if (!studentId || !exerciseId || !unitCode || score === undefined) {
     return res.status(400).json({ error: 'studentId, exerciseId, unitCode, and score are required.' });
+  }
+  // The deadline is enforced here, not just in the UI — a request sent
+  // straight to this endpoint after the cutoff is rejected the same way.
+  if (isPastDeadline()) {
+    return res.status(403).json({
+      error: `The deadline for this assignment passed on ${new Date(SUBMISSION_DEADLINE).toLocaleString()}. Late submissions aren't accepted.`,
+      deadline: SUBMISSION_DEADLINE,
+    });
   }
   try {
     await query(

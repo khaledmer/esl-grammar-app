@@ -4,6 +4,7 @@ import cors from 'cors';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initSchema } from './db.js';
+import { SUBMISSION_DEADLINE } from './config.js';
 import studentsRouter from './routes/students.js';
 import submissionsRouter from './routes/submissions.js';
 import teacherRouter from './routes/teacher.js';
@@ -20,6 +21,7 @@ app.use('/api/submissions', submissionsRouter);
 app.use('/api/teacher', teacherRouter);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
+app.get('/api/config', (req, res) => res.json({ deadline: SUBMISSION_DEADLINE }));
 
 // In production, Express serves the Vite build directly — one Render web
 // service for both the API and the static frontend. In local dev, run the

@@ -83,7 +83,12 @@ export async function submitExercise(
   await asJson(res);
 }
 
-// --- Teacher ---------------------------------------------------------
+// --- Config -------------------------------------------------------------
+
+export async function fetchConfig(): Promise<{ deadline: string }> {
+  const res = await fetch('/api/config');
+  return asJson(res) as Promise<{ deadline: string }>;
+}
 
 export async function teacherLogin(password: string): Promise<string> {
   const res = await fetch('/api/teacher/login', {

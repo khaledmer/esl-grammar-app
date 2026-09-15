@@ -6,9 +6,10 @@ interface Props {
   answers: StudentAnswers;
   onConfirm: () => void;
   onCancel: () => void;
+  error?: string | null;
 }
 
-export default function SubmissionModal({ exercise, answers, onConfirm, onCancel }: Props) {
+export default function SubmissionModal({ exercise, answers, onConfirm, onCancel, error }: Props) {
   const total = exercise.questions.length;
   const answered = exercise.questions.filter((q) => (answers[q.id] ?? '').trim().length > 0).length;
   const unanswered = total - answered;
@@ -44,6 +45,12 @@ export default function SubmissionModal({ exercise, answers, onConfirm, onCancel
           <p className="mt-4 text-xs text-(--color-marker-coral)">
             You still have {unanswered} unanswered {unanswered === 1 ? 'question' : 'questions'}. You can
             submit anyway, or go back and finish first.
+          </p>
+        )}
+
+        {error && (
+          <p className="mt-4 rounded-lg border border-(--color-marker-coral)/50 bg-(--color-marker-coral)/10 px-3 py-2 text-xs text-(--color-marker-coral)">
+            {error}
           </p>
         )}
 

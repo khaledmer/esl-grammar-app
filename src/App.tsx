@@ -5,6 +5,7 @@ import type { Student, StudentAnswers } from './types';
 import {
   getSavedStudent,
   getSubmission,
+  fetchConfig,
   logoutStudent,
   saveAnswer,
   submitExercise,
@@ -35,6 +36,26 @@ export default function App() {
   const [showAnswerKey, setShowAnswerKey] = useState(false);
   const [showSubmissions, setShowSubmissions] = useState(false);
   const [showNavHint, setShowNavHint] = useState(shouldShowNavHint);
+  const [deadline, setDeadline] = useState<Date | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchConfig()
+      .then((cfg) => setDeadline(new Date(cfg.deadline)))
+      .catch(() => setDeadline(null));
+  }, []);
+
+  const isPastDeadline = deadline !== null && Date.now() > deadline.getTime();
+  const deadlineLabel = deadline
+    ? new Intl.DateTimeFormat('en-GB', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZone: 'Africa/Algiers',
+      }).format(deadline)
+    : null;
 
   const exercise = useMemo(
     () => exercises.find((e) => e.unitCode === unitCode)!,
@@ -66,10 +87,15 @@ export default function App() {
     if (!student) return;
     const correctCount = exercise.questions.filter((q) => isCorrect(q, answers[q.id])).length;
     const pct = Math.round((correctCount / exercise.questions.length) * 100);
-    await submitExercise(student.id, exercise.id, exercise.unitCode, pct);
-    setIsSubmitted(true);
-    setScore(pct);
-    setShowSubmitModal(false);
+    try {
+      await submitExercise(student.id, exercise.id, exercise.unitCode, pct);
+      setIsSubmitted(true);
+      setScore(pct);
+      setShowSubmitModal(false);
+      setSubmitError(null);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Could not submit homework.');
+    }
   };
 
   const handleRetake = () => setIsSubmitted(false);
@@ -157,6 +183,22 @@ export default function App() {
       {mode === 'student' && showNavHint && <NavHint onDismiss={() => setShowNavHint(false)} />}
 
       <main className="mx-auto max-w-5xl px-5 py-6">
+        {mode === 'student' && deadlineLabel && (
+          <div
+            className={`mb-4 flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm ${
+              isPastDeadline
+                ? 'border-(--color-marker-coral)/50 bg-(--color-marker-coral)/10 text-(--color-marker-coral)'
+                : 'border-(--color-chalk-line) bg-(--color-board-panel) text-(--color-chalk-dim)'
+            }`}
+          >
+            {isPastDeadline ? (
+              <span>The deadline passed on <strong>{deadlineLabel}</strong> — new submissions are no longer accepted.</span>
+            ) : (
+              <span>Deadline to submit all three units: <strong className="text-(--color-chalk)">{deadlineLabel}</strong></span>
+            )}
+          </div>
+        )}
+
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-(family-name:--font-display) text-3xl text-(--color-chalk)">{exercise.title}</h2>
@@ -188,13 +230,19 @@ export default function App() {
 
             <div className="mt-6 flex justify-end gap-3">
               {isSubmitted ? (
-                <button
-                  onClick={handleRetake}
-                  className="flex items-center gap-2 rounded-xl border border-(--color-chalk-line) px-4 py-2.5 text-sm font-medium text-(--color-chalk) hover:bg-(--color-board-panel-alt)"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Retake exercise
-                </button>
+                !isPastDeadline && (
+                  <button
+                    onClick={handleRetake}
+                    className="flex items-center gap-2 rounded-xl border border-(--color-chalk-line) px-4 py-2.5 text-sm font-medium text-(--color-chalk) hover:bg-(--color-board-panel-alt)"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Retake exercise
+                  </button>
+                )
+              ) : isPastDeadline ? (
+                <span className="rounded-xl border border-(--color-chalk-line) px-4 py-2.5 text-sm text-(--color-chalk-dim)">
+                  Submission closed — the deadline has passed.
+                </span>
               ) : (
                 <button
                   onClick={() => setShowSubmitModal(true)}
@@ -235,7 +283,11 @@ export default function App() {
           exercise={exercise}
           answers={answers}
           onConfirm={handleConfirmSubmit}
-          onCancel={() => setShowSubmitModal(false)}
+          onCancel={() => {
+            setShowSubmitModal(false);
+            setSubmitError(null);
+          }}
+          error={submitError}
         />
       )}
 
