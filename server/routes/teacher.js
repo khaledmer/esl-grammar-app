@@ -54,4 +54,19 @@ router.patch('/submissions/:id', async (req, res) => {
   }
 });
 
+// Wipe a submission entirely (wrong account, duplicate, or a clean
+// redo after the deadline). This deletes the row outright — the student
+// starts that exercise from scratch next time they open it.
+router.delete('/submissions/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await query('DELETE FROM submissions WHERE id = $1 RETURNING id', [id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Submission not found.' });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('[teacher] failed to delete submission', err);
+    return res.status(500).json({ error: 'Could not delete submission.' });
+  }
+});
+
 export default router;

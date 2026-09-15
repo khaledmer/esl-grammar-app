@@ -122,3 +122,11 @@ export async function gradeSubmission(
   });
   await asJson(res);
 }
+
+export async function deleteSubmission(token: string, submissionId: number): Promise<void> {
+  const res = await fetch(`/api/teacher/submissions/${submissionId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  await asJson(res);
+}

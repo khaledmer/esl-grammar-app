@@ -10,7 +10,7 @@ import {
   saveAnswer,
   submitExercise,
 } from './api';
-import { isCorrect } from './utils';
+import { isCorrect, formatSubmittedAt } from './utils';
 import StudentLogin from './components/StudentLogin';
 import NavHint, { shouldShowNavHint, dismissNavHint } from './components/NavHint';
 import TeacherLogin from './components/TeacherLogin';
@@ -32,6 +32,7 @@ export default function App() {
   const [answers, setAnswers] = useState<StudentAnswers>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [score, setScore] = useState<number | undefined>(undefined);
+  const [submittedAt, setSubmittedAt] = useState<string | undefined>(undefined);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showAnswerKey, setShowAnswerKey] = useState(false);
   const [showSubmissions, setShowSubmissions] = useState(false);
@@ -71,6 +72,7 @@ export default function App() {
       setAnswers(submission.answers);
       setIsSubmitted(submission.isSubmitted);
       setScore(submission.score);
+      setSubmittedAt(submission.submittedAt);
     });
     return () => {
       cancelled = true;
@@ -91,6 +93,7 @@ export default function App() {
       await submitExercise(student.id, exercise.id, exercise.unitCode, pct);
       setIsSubmitted(true);
       setScore(pct);
+      setSubmittedAt(new Date().toISOString());
       setShowSubmitModal(false);
       setSubmitError(null);
     } catch (err) {
@@ -213,6 +216,11 @@ export default function App() {
               {isSubmitted && score !== undefined && (
                 <span className="rounded-full bg-(--color-marker-yellow)/15 px-3 py-1 text-xs font-semibold text-(--color-marker-yellow)">
                   Score: {score}%
+                </span>
+              )}
+              {isSubmitted && submittedAt && (
+                <span className="rounded-full bg-(--color-board-panel) px-3 py-1 text-xs text-(--color-chalk-dim)">
+                  Submitted {formatSubmittedAt(submittedAt)}
                 </span>
               )}
             </div>
